@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salles</title>
+</head>
+<body>
+    <h1>Salles</h1>
+    <br>
+    <hr>
+    <div id="addsalle">
+        <h2>Ajouter une salle</h2>
+        <form id="addSalleForm">
+            <label for="salleName">Nom de la salle:</label>
+            <input type="text" id="salleName" name="salleName" required>
+            <br>
+            <label for="salleCapacity">Capacité:</label>
+            <input type="number" id="salleCapacity" name="salleCapacity" required>
+            <br>
+            <button type="submit">Ajouter</button>
+        </form>
+    </div>
+    <br>
+    <hr>
+    <div id="updatesalle">
+        <h2>Mettre à jour une salle</h2>
+        <form id="updateSalleForm">
+            <label for="updateSalleName">Nouveau nom de la salle:</label>
+            <input type="text" id="updateSalleName" name="updateSalleName">
+            <br>
+            <label for="updateSalleCapacity">Nouvelle capacité:</label>
+            <input type="number" id="updateSalleCapacity" name="updateSalleCapacity">
+            <br>
+            <button type="submit">Mettre à jour</button>
+        </form>
+    </div>
+    <br>
+    <hr>
+    <div id="deletesalle">
+        <h2>Supprimer une salle</h2>
+        <form id="deleteSalleForm">
+            <label for="deleteSalleId">ID de la salle:</label>
+            <input type="number" id="deleteSalleId" name="deleteSalleId" required>
+            <br>
+            <button type="submit">Supprimer</button>
+        </form>
+    </div>
+    <br>
+    <hr>
+    <div id="salleList">
+        <h2>Liste des salles</h2>
+        <ul id="salleListItems">
+            <!-- Les salles seront affichées ici -->
+        </ul>
+    </div>
+    <script src="salle.js"></script>
+</body>
+</html>
