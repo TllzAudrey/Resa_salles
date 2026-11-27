@@ -1,9 +1,9 @@
 const express = require("express");
 const path = require("path");
 const {
-    createSalle,
-    deleteSalleByName,
-    editSalleByName,
+    addSalle,
+    deleteSalle,
+    editSalle,
     getSalles
 } = require("../salle/salle");
 
@@ -34,7 +34,7 @@ app.post("/api/salles", (request, response) => {
         name: request.body.name.trim(),
         capacity: request.body.capacity
     };
-    const createdSalle = createSalle(salle, dataPath);
+    const createdSalle = addSalle(salle, dataPath);
     response.status(201).json(createdSalle);
 });
 
@@ -47,7 +47,7 @@ app.put("/api/salles/:id", (request, response) => {
         name: request.body.name.trim(),
         capacity: request.body.capacity
     };
-    const updatedSalle = editSalleByName(request.params.id, salle, dataPath);
+    const updatedSalle = editSalle(request.params.id, salle, dataPath);
     if (!updatedSalle) {
         return response.status(404).json({ error: "Salle introuvable." });
     }
@@ -55,7 +55,7 @@ app.put("/api/salles/:id", (request, response) => {
 });
 
 app.delete("/api/salles/:id", (request, response) => {
-    if (!deleteSalleByName(request.params.id, dataPath)) {
+    if (!deleteSalle(request.params.id, dataPath)) {
         return response.status(404).json({ error: "Salle introuvable." });
     }
     response.status(204).end();

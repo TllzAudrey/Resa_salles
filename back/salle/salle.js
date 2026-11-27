@@ -27,19 +27,6 @@ function addSalle(salle, dataPath = defaultDataPath) {
     const data = readData(dataPath);
     const dataSalles = Array.isArray(data.salles) ? data.salles : [];
     if (dataSalles.some(existingSalle => existingSalle.name === salle.name)) {
-        throw new Error("Salle déjà existante");
-    }
-
-    dataSalles.push(salle);
-    data.salles = dataSalles;
-    writeData(data, dataPath);
-}
-
-function createSalle(salle, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    data.salles = dataSalles;
-    if (dataSalles.some(existingSalle => existingSalle.name === salle.name)) {
         const error = new Error("Salle déjà existante");
         error.code = "SALLE_DUPLICATE";
         throw error;
@@ -54,20 +41,6 @@ function createSalle(salle, dataPath = defaultDataPath) {
 
 function editSalle(name, updatedSalle, dataPath = defaultDataPath) {
     const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    const index = dataSalles.findIndex(salle => salle.name === name);
-    if (index >= 0) {
-        dataSalles[index] = updatedSalle;
-        data.salles = dataSalles;
-        writeData(data, dataPath);
-        return "Salle modifiée";
-    }
-    addSalle(updatedSalle, dataPath);
-    return "Nouvelle salle créée";
-}
-
-function editSalleByName(name, updatedSalle, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
     data.salles = Array.isArray(data.salles) ? data.salles : [];
     const index = data.salles.findIndex(salle => salle.name === name);
     if (index < 0) {
@@ -81,24 +54,11 @@ function editSalleByName(name, updatedSalle, dataPath = defaultDataPath) {
 
     data.salles[index] = withoutGeneratedId(updatedSalle);
     writeData(data, dataPath);
-    return withoutGeneratedId(data.salles[index]);
+    return data.salles[index];
 }
 
-function deleteSalle(salleName, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    const index = dataSalles.findIndex(salle => salle.name === salleName);
-    if (index < 0) {
-        throw new Error("Salle n'existais pas");
-    }
 
-    dataSalles.splice(index, 1);
-    data.salles = dataSalles;
-    writeData(data, dataPath);
-    return "Salle supprimée";
-}
-
-function deleteSalleByName(name, dataPath = defaultDataPath) {
+function deleteSalle(name, dataPath = defaultDataPath) {
     const data = readData(dataPath);
     data.salles = Array.isArray(data.salles) ? data.salles : [];
     const index = data.salles.findIndex(salle => salle.name === name);
@@ -113,10 +73,7 @@ function deleteSalleByName(name, dataPath = defaultDataPath) {
 
 module.exports = {
     addSalle,
-    createSalle,
     deleteSalle,
-    deleteSalleByName,
     editSalle,
-    editSalleByName,
     getSalles
 };
