@@ -17,5 +17,22 @@
       "capacity": 5
     }
   ],
-  "reservations": []
+  "reservations": [
+    {
+      "salle": "Salle 1",
+      "dateDebut": "2026-11-27",
+      "dateFin": "2026-11-28",
+      "heureDebut": "19:47",
+      "heureFin": "20:47",
+      "capacite": "5"
+    },
+    {
+      "salle": "salle 40",
+      "dateDebut": "2026-11-28",
+      "dateFin": "2026-11-29",
+      "heureDebut": "18:48",
+      "heureFin": "21:48",
+      "capacite": "2"
+    }
+  ]
 }

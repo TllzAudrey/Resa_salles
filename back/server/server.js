@@ -10,7 +10,9 @@ const {
     addReservation,
     deleteReservation,
     editReservation,
-    getReservations
+    getReservations,
+    jourReservation,
+    salleReservation
 } = require("../reservation/reservation");
 
 const app = express();
@@ -85,7 +87,25 @@ app.delete("/api/salles/:id", (request, response) => {
 });
 
 app.get("/api/reservations", (request, response) => {
-    response.json(getReservations(dataPath));
+    const { jour, salle } = request.query;
+    if ((jour !== undefined && (typeof jour !== "string" || jour.length === 0)) ||
+        (salle !== undefined && (typeof salle !== "string" || salle.trim().length === 0))) {
+        return response.status(400).json({ error: "Les filtres jour et salle doivent être des valeurs uniques et non vides." });
+    }
+
+    let reservations;
+    if (jour !== undefined && salle !== undefined) {
+        reservations = jourReservation(jour, dataPath).reservations.filter(
+            reservation => reservation.salle === salle.trim()
+        );
+    } else if (jour !== undefined) {
+        reservations = jourReservation(jour, dataPath).reservations;
+    } else if (salle !== undefined) {
+        reservations = salleReservation(salle.trim(), dataPath).reservations;
+    } else {
+        reservations = getReservations(dataPath);
+    }
+    response.json(reservations);
 });
 
 app.post("/api/reservations", (request, response) => {

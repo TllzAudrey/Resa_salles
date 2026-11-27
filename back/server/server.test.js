@@ -130,6 +130,19 @@ describe("routes des salles", () => {
         expect(script.text).not.toContain("salle.id");
         expect(script.text).not.toContain("data.json");
     });
+
+    test("la page d'accueil propose de consulter et filtrer les réservations", async () => {
+        const page = await request(app).get("/");
+        const script = await request(app).get("/app.js");
+
+        expect(page.status).toBe(200);
+        expect(page.text).toContain('id="reservationDay"');
+        expect(page.text).toContain('id="reservationRoom"');
+        expect(page.text).toContain('id="reservationListItems"');
+        expect(page.text).toContain("/app.js");
+        expect(script.text).toContain('query.set("jour"');
+        expect(script.text).toContain('query.set("salle"');
+    });
 });
 
 describe("routes des réservations", () => {
@@ -143,6 +156,48 @@ describe("routes des réservations", () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual([{ salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" }]);
+    });
+
+    test("GET /api/reservations?jour retourne les réservations qui couvrent ce jour", async () => {
+        const reservations = [
+            { salle: "Salle 1", dateDebut: "2023-10-09", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" },
+            { salle: "Salle 2", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "12:00", heureFin: "14:00", capacite: "30" },
+            { salle: "Salle 1", dateDebut: "2023-10-11", dateFin: "2023-10-11", heureDebut: "09:00", heureFin: "10:00", capacite: "30" }
+        ];
+        fs.writeFileSync(storagePath, JSON.stringify({ salles: [], reservations }));
+
+        const response = await request(app).get("/api/reservations").query({ jour: "2023-10-10" });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(reservations.slice(0, 2));
+    });
+
+    test("GET /api/reservations?salle retourne uniquement les réservations de cette salle", async () => {
+        const reservations = [
+            { salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" },
+            { salle: "Salle 2", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "12:00", heureFin: "14:00", capacite: "30" }
+        ];
+        fs.writeFileSync(storagePath, JSON.stringify({ salles: [], reservations }));
+
+        const response = await request(app).get("/api/reservations").query({ salle: "Salle 2" });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual([reservations[1]]);
+    });
+
+    test("GET /api/reservations combine les filtres jour et salle", async () => {
+        const reservations = [
+            { salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" },
+            { salle: "Salle 2", dateDebut: "2023-10-09", dateFin: "2023-10-10", heureDebut: "12:00", heureFin: "14:00", capacite: "30" }
+        ];
+        fs.writeFileSync(storagePath, JSON.stringify({ salles: [], reservations }));
+
+        const response = await request(app)
+            .get("/api/reservations")
+            .query({ jour: "2023-10-10", salle: "Salle 2" });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual([reservations[1]]);
     });
 
     test("POST /api/reservations crée une réservation et la stocke", async () => {

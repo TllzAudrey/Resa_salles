@@ -159,9 +159,29 @@ function editReservation(salleReservee, dateDebut, HeureDebut, updatedReservatio
     return "Réservation modifiée avec succès";
 }
 
+function jourReservation(jour, dataPath = defaultDataPath) {
+    const data = readData(dataPath);
+    const dataReservations = Array.isArray(data.reservations) ? data.reservations : [];
+    return {
+        reservations: dataReservations.filter(reservation =>
+            reservation.dateDebut <= jour && reservation.dateFin >= jour)
+    };
+}
+
+function salleReservation(salle, dataPath = defaultDataPath) {
+    const data = readData(dataPath);
+    const dataReservations = Array.isArray(data.reservations) ? data.reservations : [];
+    return {
+        reservations: dataReservations.filter(reservation => reservation.salle === salle)
+    };
+}
+
+
 module.exports = {
     addReservation,
     deleteReservation,
     editReservation,
-    getReservations
+    getReservations,
+    jourReservation,
+    salleReservation
 };
