@@ -1,4 +1,4 @@
-const { getReservations, addReservation, editReservation, deleteReservation} = require("./reservation");
+const { getReservations, addReservation, editReservation, deleteReservation, jourReservation, salleReservation } = require("./reservation");
 const fs = require("fs");
 const path = require("path");
 const dataLink = path.resolve(__dirname, "..", "data_test.json");
@@ -329,4 +329,47 @@ test('editReservation_modificationValid_returnMessage', () => {
 
     // Assert
     expect(result).toBe(expected);
+});
+
+
+test('jourReservation_retourneLesReservationsQuiCouvrentLeJour', () => {
+    // Arrange
+    const reservations = [
+        { salle: "Salle 2", dateDebut: "2023-10-09", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" },
+        { salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "12:00", heureFin: "14:00", capacite: "30" },
+        { salle: "Salle 2", dateDebut: "2023-10-11", dateFin: "2023-10-12", heureDebut: "09:00", heureFin: "10:00", capacite: "30" }
+    ];
+    fs.writeFileSync(dataLink, JSON.stringify({ salles: [], reservations }, null, 2));
+    const jour = "2023-10-10";
+
+    // Act
+    const result = jourReservation(jour, dataLink);
+
+    // Assert
+    expect(result).toEqual({ reservations: reservations.slice(0, 2) });
+});
+
+test('jourReservation_sansResultatRetourneUneListeVide', () => {
+    // Arrange
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [],
+        reservations: [{ salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" }]
+    }, null, 2));
+    const expected = { reservations: [] };
+
+    // Act
+    const result = jourReservation("2023-10-11", dataLink);
+
+    // Assert
+    expect(result).toEqual(expected);
+});
+
+test('salleReservation_retourneUniquementLesReservationsDeLaSalle', () => {
+    const reservations = [
+        { salle: "Salle 1", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "09:00", heureFin: "10:00", capacite: "30" },
+        { salle: "Salle 2", dateDebut: "2023-10-10", dateFin: "2023-10-10", heureDebut: "12:00", heureFin: "14:00", capacite: "30" }
+    ];
+    fs.writeFileSync(dataLink, JSON.stringify({ salles: [], reservations }, null, 2));
+
+    expect(salleReservation("Salle 2", dataLink)).toEqual({ reservations: [reservations[1]] });
 });

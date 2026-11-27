@@ -4,9 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <meta http-equiv="refresh" content="0; url=/"> -->
-    <title>Gestion des salles</title>
+    <title>Réservations des salles</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <p>Redirection vers la <a href="/salle.html">gestion des salles</a>…</p>
+    <ul id="nav">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/salle.html">Gestion des salles</a></li>
+        <li><a href="/reservation.html">Gestion des réservations</a></li>
+    </ul>
+    <h1>Réservations des salles</h1>
+    <p id="message" role="status" aria-live="polite"></p>
+    <main>
+        <h2>Consulter les réservations</h2>
+        <form id="reservationSearchForm">
+            <label for="reservationDay">Jour :</label>
+            <input type="date" id="reservationDay" name="jour">
+            <label for="reservationRoom">Salle :</label>
+            <select id="reservationRoom" name="salle">
+                <option value="">Toutes les salles</option>
+            </select>
+            <button type="submit">Rechercher</button>
+            <button type="button" id="clearReservationFilters">Afficher toutes les réservations</button>
+        </form>
+        <ul id="reservationListItems"></ul>
+    </main>
+    <script src="/app.js" defer></script>
 </body>
 </html>
