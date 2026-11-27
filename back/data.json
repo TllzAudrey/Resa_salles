@@ -1,0 +1,25 @@
+{
+  "salles": [
+    {
+      "name": "Salle 1",
+      "capacity": 100
+    },
+    {
+      "name": "Salle 3",
+      "capacity": 50
+    },
+    {
+      "name": "Salle 5",
+      "capacity": 50
+    },
+    {
+      "name": "salle 40",
+      "capacity": 2
+    },
+    {
+      "name": "Salle test",
+      "capacity": 5
+    }
+  ],
+  "reservations": []
+}
