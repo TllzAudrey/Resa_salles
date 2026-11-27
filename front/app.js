@@ -278,8 +278,78 @@ function setupReservationPage() {
     });
 }
 
+function setupHomePage() {
+    const form = document.getElementById("reservationSearchForm");
+    const dayInput = document.getElementById("reservationDay");
+    const salleSelect = document.getElementById("reservationRoom");
+    const reservationList = document.getElementById("reservationListItems");
+
+    function renderReservations(reservations) {
+        reservationList.replaceChildren();
+        if (reservations.length === 0) {
+            const item = document.createElement("li");
+            item.textContent = "Aucune réservation pour ces critères.";
+            reservationList.appendChild(item);
+            return;
+        }
+
+        reservations.forEach(reservation => {
+            const item = document.createElement("li");
+            item.textContent = `${reservation.salle} — du ${reservation.dateDebut} ${reservation.heureDebut} au ${reservation.dateFin} ${reservation.heureFin} — ${reservation.capacite} participants`;
+            reservationList.appendChild(item);
+        });
+    }
+
+    async function loadReservations() {
+        const query = new URLSearchParams();
+        if (dayInput.value) {
+            query.set("jour", dayInput.value);
+        }
+        if (salleSelect.value) {
+            query.set("salle", salleSelect.value);
+        }
+        const queryString = query.toString();
+        const url = queryString ? `/api/reservations?${queryString}` : "/api/reservations";
+        renderReservations(await requestApi(url));
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        try {
+            await loadReservations();
+            showMessage("");
+        } catch (error) {
+            showMessage(error.message);
+        }
+    });
+
+    document.getElementById("clearReservationFilters").addEventListener("click", async () => {
+        form.reset();
+        try {
+            await loadReservations();
+            showMessage("");
+        } catch (error) {
+            showMessage(error.message);
+        }
+    });
+
+    Promise.all([
+        requestApi("/api/salles"),
+        requestApi("/api/reservations")
+    ]).then(([salles, reservations]) => {
+        salles.forEach(salle => {
+            salleSelect.add(new Option(salle.name, salle.name));
+        });
+        renderReservations(reservations);
+    }).catch(error => {
+        showMessage(error.message);
+    });
+}
+
 if (document.getElementById("addReservationForm")) {
     setupReservationPage();
 } else if (document.getElementById("addSalleForm")) {
     setupSallePage();
+} else if (document.getElementById("reservationSearchForm")) {
+    setupHomePage();
 }
