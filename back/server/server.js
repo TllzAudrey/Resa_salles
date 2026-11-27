@@ -6,6 +6,12 @@ const {
     editSalle,
     getSalles
 } = require("../salle/salle");
+const {
+    addReservation,
+    deleteReservation,
+    editReservation,
+    getReservations
+} = require("../reservation/reservation");
 
 const app = express();
 const dataPath = process.env.SALLE_DATA_FILE || path.resolve(__dirname, "..", "data.json");
@@ -19,6 +25,23 @@ function isValidSalle(salle) {
         salle.name.trim().length > 0 &&
         Number.isInteger(salle.capacity) &&
         salle.capacity > 0;
+}
+
+function isValidReservation(reservation) {
+    return reservation &&
+        typeof reservation.salle === "string" &&
+        reservation.salle.trim().length > 0 &&
+        typeof reservation.dateDebut === "string" &&
+        reservation.dateDebut.length > 0 &&
+        typeof reservation.dateFin === "string" &&
+        reservation.dateFin.length > 0 &&
+        typeof reservation.heureDebut === "string" &&
+        reservation.heureDebut.length > 0 &&
+        typeof reservation.heureFin === "string" &&
+        reservation.heureFin.length > 0 &&
+        typeof reservation.capacite === "string" &&
+        Number.isFinite(Number(reservation.capacite)) &&
+        Number(reservation.capacite) > 0;
 }
 
 app.get("/api/salles", (request, response) => {
@@ -61,8 +84,108 @@ app.delete("/api/salles/:id", (request, response) => {
     response.status(204).end();
 });
 
+app.get("/api/reservations", (request, response) => {
+    response.json(getReservations(dataPath));
+});
+
+app.post("/api/reservations", (request, response) => {
+    if (!isValidReservation(request.body)) {
+        return response.status(400).json({ error: "Les informations de la réservation sont invalides." });
+    }
+
+    const reservation = {
+        salle: request.body.salle.trim(),
+        dateDebut: request.body.dateDebut,
+        dateFin: request.body.dateFin,
+        heureDebut: request.body.heureDebut,
+        heureFin: request.body.heureFin,
+        capacite: request.body.capacite
+    };
+    addReservation(reservation, dataPath);
+    response.status(201).json(reservation);
+});
+
+app.put("/api/reservations", (request, response) => {
+    const current = request.body && request.body.current;
+    const reservation = request.body && request.body.reservation;
+    if (!current ||
+        typeof current.salle !== "string" ||
+        current.salle.trim().length === 0 ||
+        typeof current.dateDebut !== "string" ||
+        current.dateDebut.length === 0 ||
+        typeof current.heureDebut !== "string" ||
+        current.heureDebut.length === 0 ||
+        !isValidReservation(reservation)) {
+        return response.status(400).json({ error: "Les informations de la réservation sont invalides." });
+    }
+
+    const reservationKey = {
+        salle: current.salle.trim(),
+        dateDebut: current.dateDebut,
+        heureDebut: current.heureDebut
+    };
+    const exists = getReservations(dataPath).some(existingReservation =>
+        existingReservation.salle === reservationKey.salle &&
+        existingReservation.dateDebut === reservationKey.dateDebut &&
+        existingReservation.heureDebut === reservationKey.heureDebut);
+    if (!exists) {
+        return response.status(404).json({ error: "Réservation introuvable." });
+    }
+
+    const updatedReservation = {
+        salle: reservation.salle.trim(),
+        dateDebut: reservation.dateDebut,
+        dateFin: reservation.dateFin,
+        heureDebut: reservation.heureDebut,
+        heureFin: reservation.heureFin,
+        capacite: reservation.capacite
+    };
+    editReservation(
+        reservationKey.salle,
+        reservationKey.dateDebut,
+        reservationKey.heureDebut,
+        updatedReservation,
+        dataPath
+    );
+    response.json(updatedReservation);
+});
+
+app.delete("/api/reservations", (request, response) => {
+    const current = request.body && request.body.current;
+    if (!current ||
+        typeof current.salle !== "string" ||
+        current.salle.trim().length === 0 ||
+        typeof current.dateDebut !== "string" ||
+        current.dateDebut.length === 0 ||
+        typeof current.heureDebut !== "string" ||
+        current.heureDebut.length === 0) {
+        return response.status(400).json({ error: "Les informations de la réservation sont invalides." });
+    }
+
+    const reservationKey = {
+        salle: current.salle.trim(),
+        dateDebut: current.dateDebut,
+        heureDebut: current.heureDebut
+    };
+    const exists = getReservations(dataPath).some(existingReservation =>
+        existingReservation.salle === reservationKey.salle &&
+        existingReservation.dateDebut === reservationKey.dateDebut &&
+        existingReservation.heureDebut === reservationKey.heureDebut);
+    if (!exists) {
+        return response.status(404).json({ error: "Réservation introuvable." });
+    }
+
+    deleteReservation(
+        reservationKey.salle,
+        reservationKey.dateDebut,
+        reservationKey.heureDebut,
+        dataPath
+    );
+    response.status(204).end();
+});
+
 app.get("/", (request, response) => {
-    response.sendFile(path.join(frontendPath, "salle.html"));
+    response.sendFile(path.join(frontendPath, "index.html"));
 });
 
 app.use(express.static(frontendPath));
@@ -74,6 +197,24 @@ app.use("/api", (request, response) => {
 app.use((error, request, response, next) => {
     if (error.code === "SALLE_DUPLICATE") {
         return response.status(409).json({ error: error.message });
+    }
+    if (error.message === "Salle déjà réservée pour cette période") {
+        return response.status(409).json({ error: error.message });
+    }
+    if (error.message === "Salle inexistante") {
+        return response.status(404).json({ error: error.message });
+    }
+    if ([
+        "Pas de Date de début",
+        "Pas de Date de fin",
+        "Pas d'heure de début",
+        "Pas d'heure de fin",
+        "Heure de fin inférieure à l'heure de début",
+        "Date de fin inférieure à la date de début",
+        "Pas de capacité",
+        "Capacité de réservation supérieure à la capacité de la salle"
+    ].includes(error.message)) {
+        return response.status(400).json({ error: error.message });
     }
     if (error.status === 400) {
         return response.status(400).json({ error: "Requête JSON invalide." });

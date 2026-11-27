@@ -41,8 +41,10 @@
     <div id="updatereservation">
         <h2>Mettre à jour une reservation</h2>
         <form id="updateReservationForm">
-            <label for="updateReservationKey">Nom actuel de la salle (identifiant):</label>
-            <input type="text" id="updateReservationKey" name="updateReservationKey" required>
+            <label for="updateReservationKey">Réservation à modifier:</label>
+            <select id="updateReservationKey" name="updateReservationKey" required>
+                <option value="">--Sélectionnez une réservation--</option>
+            </select>
             <br>
             <label for="updateReservationStartDate">Nouvelle date de début:</label>
             <input type="date" id="updateReservationStartDate" name="updateReservationStartDate" required>
@@ -64,17 +66,19 @@
     </div>
     <br>
     <hr>
-    <!-- <div id="deletereservation">
-        <h2>Supprimer une reservation</h2>
+    <div id="deletereservation">
+        <h2>Supprimer une réservation</h2>
         <form id="deleteReservationForm">
-            <label for="deleteReservationKey">Nom de la reservation à supprimer (via la salle):</label>
-            <input type="text" id="deleteReservationKey" name="deleteReservationKey" required>
+            <label for="deleteReservationKey">Réservation à supprimer:</label>
+            <select id="deleteReservationKey" name="deleteReservationKey" required>
+                <option value="">--Sélectionnez une réservation--</option>
+            </select>
             <br>
             <button type="submit">Supprimer</button>
         </form>
     </div>
     <br>
-    <hr> -->
+    <hr>
     <div id="reservationList">
         <h2>Liste des Réservation</h2>
         <ul id="reservationListItems">
