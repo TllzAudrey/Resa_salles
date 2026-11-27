@@ -6,6 +6,81 @@
     <title>Reservation</title>
 </head>
 <body>
-    
+    <h1>Réservations</h1>
+    <p id="message" role="status" aria-live="polite"></p>
+    <br>
+    <hr>
+    <div id="addresevation">
+        <h2>Ajouter une réservation</h2>
+        <form id="addReservationForm">
+            <label for="salleName">Nom de la salle:</label>
+            <select id="salleName" name="salleName" required>
+                <option value="">--Sélectionnez une salle--</option>
+            </select>
+            <br>
+            <label for="reservationStartDate">Date de début:</label>
+            <input type="date" id="reservationStartDate" name="reservationStartDate" required>
+            <br>
+            <label for="reservationEndDate">Date de fin:</label>
+            <input type="date" id="reservationEndDate" name="reservationEndDate" required>
+            <br>
+            <label for="reservationStartHour">Heure de début:</label>
+            <input type="time" id="reservationStartHour" name="reservationStartHour" required>
+            <br>
+            <label for="reservationEndHour">Heure de fin:</label>
+            <input type="time" id="reservationEndHour" name="reservationEndHour" required>
+            <br>
+            <label for="reservationCapacity">Nombre de participants:</label>
+            <input type="number" id="reservationCapacity" name="reservationCapacity" min="1" required>
+            <br>
+            <button type="submit">Ajouter</button>
+        </form>
+    </div>
+    <br>
+    <hr>
+    <div id="updatereservation">
+        <h2>Mettre à jour une reservation</h2>
+        <form id="updateReservationForm">
+            <label for="updateReservationKey">Nom actuel de la salle (identifiant):</label>
+            <input type="text" id="updateReservationKey" name="updateReservationKey" required>
+            <br>
+            <label for="updateReservationStartDate">Nouvelle date de début:</label>
+            <input type="date" id="updateReservationStartDate" name="updateReservationStartDate" required>
+            <br>
+            <label for="updateReservationEndDate">Nouvelle date de fin:</label>
+            <input type="date" id="updateReservationEndDate" name="updateReservationEndDate" required>
+            <br>
+            <label for="updateReservationStartHour">Nouvelle heure de début:</label>
+            <input type="time" id="updateReservationStartHour" name="updateReservationStartHour" required>
+            <br>
+            <label for="updateReservationEndHour">Nouvelle heure de fin:</label>
+            <input type="time" id="updateReservationEndHour" name="updateReservationEndHour" required>
+            <br>
+            <label for="updateReservationCapacity">Nouvelle capacité:</label>
+            <input type="number" id="updateReservationCapacity" name="updateReservationCapacity" min="1" required>
+            <br>
+            <button type="submit">Mettre à jour</button>
+        </form>
+    </div>
+    <br>
+    <hr>
+    <!-- <div id="deletereservation">
+        <h2>Supprimer une reservation</h2>
+        <form id="deleteReservationForm">
+            <label for="deleteReservationKey">Nom de la reservation à supprimer (via la salle):</label>
+            <input type="text" id="deleteReservationKey" name="deleteReservationKey" required>
+            <br>
+            <button type="submit">Supprimer</button>
+        </form>
+    </div>
+    <br>
+    <hr> -->
+    <div id="reservationList">
+        <h2>Liste des Réservation</h2>
+        <ul id="reservationListItems">
+            <!-- Les réservations seront affichées ici -->
+        </ul>
+    </div>
+    <script src="/app.js" defer></script>
 </body>
 </html>
