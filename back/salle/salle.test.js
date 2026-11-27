@@ -48,6 +48,54 @@ test("editSalle modifie une salle existante", () => {
     expect(data.salles).toEqual([nouvelleSalle]);
 });
 
+test("editSalle_reservationExistante_modificationEnCascade", () => {
+    const dataReservations = [
+        {
+            salle: "Salle 1",  
+            dateDebut: "2023-10-10",
+            dateFin: "2023-10-10",
+            heureDebut: "09:00",
+            heureFin: "10:00",
+            capacite: "30"
+        }
+    ];
+    const ancienneSalle = { name: "Salle 1", capacity: 50 };
+    const nouvelleSalle = { name: "Salle rénovée", capacity: 100 };
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [ancienneSalle],
+        reservations: dataReservations
+    }, null, 2));
+
+    const result = editSalle(ancienneSalle.name, nouvelleSalle, dataLink);
+    const data = JSON.parse(fs.readFileSync(dataLink, "utf8"));
+
+    expect(result).toEqual(nouvelleSalle);
+    expect(data.salles).toEqual([nouvelleSalle]);
+    expect(data.reservations[0].salle).toBe(nouvelleSalle.name);
+});
+
+test("editSalle_reservationExistante_refuseModification", () => {
+    const dataReservations = [
+        {
+            salle: "Salle 1",  
+            dateDebut: "2023-10-10",
+            dateFin: "2023-10-10",
+            heureDebut: "09:00",
+            heureFin: "10:00",
+            capacite: "30"
+        }
+    ];
+    const ancienneSalle = { name: "Salle 1", capacity: 50 };
+    const nouvelleSalle = { name: "Salle 1", capacity: 20 };
+    const expected = "Impossible de modifier la salle car des réservations existent pour cette salle avec une capacité supérieure.";
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [ancienneSalle],
+        reservations: dataReservations
+    }, null, 2));
+
+    expect(() => editSalle(ancienneSalle.name, nouvelleSalle, dataLink)).toThrow(expected);
+});
+
 test("editSalle retourne null si la salle n'existe pas", () => {
     const salle = { name: "Salle absente", capacity: 50 };
 
