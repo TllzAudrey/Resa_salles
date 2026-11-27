@@ -1,4 +1,4 @@
-const {addSalle, editSalle, deleteSalle} = require("./salle");
+const { addSalle, editSalle, deleteSalle, getSalles } = require("./salle");
 const fs = require("fs");
 const path = require("path");
 const dataLink = path.resolve(__dirname, "..", "data_test.json");
@@ -7,53 +7,115 @@ beforeEach(() => {
     fs.writeFileSync(dataLink, JSON.stringify({ salles: [], reservations: [] }, null, 2));
 });
 
-test("salle_add_returns_object", () => {
-    // Arrange
+test("getSalles retourne les salles sans propriété id", () => {
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [{ name: "Salle 1", capacity: 50, id: "1" }],
+        reservations: []
+    }, null, 2));
+
+    expect(getSalles(dataLink)).toEqual([{ name: "Salle 1", capacity: 50 }]);
+});
+
+test("addSalle ajoute une salle et retourne l'objet ajouté", () => {
     const salle = { name: "Salle 3", capacity: 50 };
 
-    addSalle(salle, dataLink);
+    const result = addSalle(salle, dataLink);
     const data = JSON.parse(fs.readFileSync(dataLink, "utf8"));
 
-    // Assert
+    expect(result).toEqual(salle);
     expect(data.salles).toContainEqual(salle);
 });
 
-test("salle_add_returns_error", () => {
-    // Arrange
+test("addSalle rejette un nom déjà utilisé", () => {
     const salle = { name: "Salle 1", capacity: 50 };
-    const expected = "Salle déjà existante";
-
-    const data = salle;
     fs.writeFileSync(dataLink, JSON.stringify({ salles: [salle], reservations: [] }, null, 2));
 
-    // Assert
-    expect(() => addSalle(salle, dataLink)).toThrow(expected);
+    expect(() => addSalle(salle, dataLink)).toThrow("Salle déjà existante");
 });
 
-test("salle_edit_returns_object", () => {
-    // Arrange
-    const salle = { name: "Salle 1", capacity: 100 };
+test("editSalle modifie une salle existante", () => {
+    const ancienneSalle = { name: "Salle 1", capacity: 50 };
+    const nouvelleSalle = { name: "Salle rénovée", capacity: 100 };
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [ancienneSalle],
+        reservations: []
+    }, null, 2));
 
-    editSalle(salle.name, salle, dataLink);
+    const result = editSalle(ancienneSalle.name, nouvelleSalle, dataLink);
     const data = JSON.parse(fs.readFileSync(dataLink, "utf8"));
-    // Assert
-    expect(data.salles).toContainEqual(salle);
+
+    expect(result).toEqual(nouvelleSalle);
+    expect(data.salles).toEqual([nouvelleSalle]);
 });
 
-test("salle_edit_returns_error", () => {
-    // Arrange
-    const salle = { name: "Salle 5", capacity: 50 };
-    const expected = "Nouvelle salle créée";
+test("editSalle_reservationExistante_modificationEnCascade", () => {
+    const dataReservations = [
+        {
+            salle: "Salle 1",  
+            dateDebut: "2023-10-10",
+            dateFin: "2023-10-10",
+            heureDebut: "09:00",
+            heureFin: "10:00",
+            capacite: "30"
+        }
+    ];
+    const ancienneSalle = { name: "Salle 1", capacity: 50 };
+    const nouvelleSalle = { name: "Salle rénovée", capacity: 100 };
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [ancienneSalle],
+        reservations: dataReservations
+    }, null, 2));
 
-    const result =  editSalle(salle.name, salle, dataLink);
+    const result = editSalle(ancienneSalle.name, nouvelleSalle, dataLink);
     const data = JSON.parse(fs.readFileSync(dataLink, "utf8"));
-    // Assert
-    expect(data.salles).toContainEqual(salle);
-    expect(result).toBe(expected);
+
+    expect(result).toEqual(nouvelleSalle);
+    expect(data.salles).toEqual([nouvelleSalle]);
+    expect(data.reservations[0].salle).toBe(nouvelleSalle.name);
 });
 
-test("salle_delete_returns_message", () => {
-    // Arrange
+test("editSalle_reservationExistante_refuseModification", () => {
+    const dataReservations = [
+        {
+            salle: "Salle 1",  
+            dateDebut: "2023-10-10",
+            dateFin: "2023-10-10",
+            heureDebut: "09:00",
+            heureFin: "10:00",
+            capacite: "30"
+        }
+    ];
+    const ancienneSalle = { name: "Salle 1", capacity: 50 };
+    const nouvelleSalle = { name: "Salle 1", capacity: 20 };
+    const expected = "Impossible de modifier la salle car des réservations existent pour cette salle avec une capacité supérieure.";
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [ancienneSalle],
+        reservations: dataReservations
+    }, null, 2));
+
+    expect(() => editSalle(ancienneSalle.name, nouvelleSalle, dataLink)).toThrow(expected);
+});
+
+test("editSalle retourne null si la salle n'existe pas", () => {
+    const salle = { name: "Salle absente", capacity: 50 };
+
+    expect(editSalle(salle.name, salle, dataLink)).toBeNull();
+});
+
+test("editSalle rejette un nouveau nom déjà utilisé", () => {
+    fs.writeFileSync(dataLink, JSON.stringify({
+        salles: [
+            { name: "Salle 1", capacity: 50 },
+            { name: "Salle 2", capacity: 30 }
+        ],
+        reservations: []
+    }, null, 2));
+
+    expect(() => editSalle("Salle 1", { name: "Salle 2", capacity: 60 }, dataLink))
+        .toThrow("Salle déjà existante");
+});
+
+test("deleteSalle supprime une salle existante", () => {
     fs.writeFileSync(dataLink, JSON.stringify({ salles: [
         {
             "name": "Salle 5",
@@ -66,21 +128,13 @@ test("salle_delete_returns_message", () => {
     ], reservations: [] }, null, 2));
 
     const salle = "Salle 5";
-    const expected = "Salle supprimée";
-
     const result = deleteSalle(salle, dataLink);
     const data = JSON.parse(fs.readFileSync(dataLink, "utf8"));
 
-    // Assert
+    expect(result).toBe(true);
     expect(data.salles.some(existingSalle => existingSalle.name === salle)).toBe(false);
-    expect(result).toBe(expected);
 });
 
-test("salle_delete_returns_error", () => {
-    // Arrange
-    const salle = "Salle 6";
-    const expected = "Salle n'existais pas";
-
-    // Assert
-    expect(() => deleteSalle(salle, dataLink)).toThrow(expected);
+test("deleteSalle retourne false si la salle n'existe pas", () => {
+    expect(deleteSalle("Salle 6", dataLink)).toBe(false);
 });

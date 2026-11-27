@@ -27,19 +27,6 @@ function addSalle(salle, dataPath = defaultDataPath) {
     const data = readData(dataPath);
     const dataSalles = Array.isArray(data.salles) ? data.salles : [];
     if (dataSalles.some(existingSalle => existingSalle.name === salle.name)) {
-        throw new Error("Salle déjà existante");
-    }
-
-    dataSalles.push(salle);
-    data.salles = dataSalles;
-    writeData(data, dataPath);
-}
-
-function createSalle(salle, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    data.salles = dataSalles;
-    if (dataSalles.some(existingSalle => existingSalle.name === salle.name)) {
         const error = new Error("Salle déjà existante");
         error.code = "SALLE_DUPLICATE";
         throw error;
@@ -54,21 +41,8 @@ function createSalle(salle, dataPath = defaultDataPath) {
 
 function editSalle(name, updatedSalle, dataPath = defaultDataPath) {
     const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    const index = dataSalles.findIndex(salle => salle.name === name);
-    if (index >= 0) {
-        dataSalles[index] = updatedSalle;
-        data.salles = dataSalles;
-        writeData(data, dataPath);
-        return "Salle modifiée";
-    }
-    addSalle(updatedSalle, dataPath);
-    return "Nouvelle salle créée";
-}
-
-function editSalleByName(name, updatedSalle, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
     data.salles = Array.isArray(data.salles) ? data.salles : [];
+    const dataReservations = Array.isArray(data.reservations) ? data.reservations : [];
     const index = data.salles.findIndex(salle => salle.name === name);
     if (index < 0) {
         return null;
@@ -79,26 +53,25 @@ function editSalleByName(name, updatedSalle, dataPath = defaultDataPath) {
         throw error;
     }
 
-    data.salles[index] = withoutGeneratedId(updatedSalle);
-    writeData(data, dataPath);
-    return withoutGeneratedId(data.salles[index]);
-}
-
-function deleteSalle(salleName, dataPath = defaultDataPath) {
-    const data = readData(dataPath);
-    const dataSalles = Array.isArray(data.salles) ? data.salles : [];
-    const index = dataSalles.findIndex(salle => salle.name === salleName);
-    if (index < 0) {
-        throw new Error("Salle n'existais pas");
+    if (dataReservations.some(reservation => reservation.salle === name && reservation.capacite > updatedSalle.capacity)) {
+        throw new Error("Impossible de modifier la salle car des réservations existent pour cette salle avec une capacité supérieure.");
     }
 
-    dataSalles.splice(index, 1);
-    data.salles = dataSalles;
+    if (dataReservations.some(reservation => reservation.salle === name)) {
+        dataReservations.forEach(reservation => {
+            if (reservation.salle === name) {
+                reservation.salle = updatedSalle.name;
+            }
+        });
+    }
+
+    data.salles[index] = withoutGeneratedId(updatedSalle);
     writeData(data, dataPath);
-    return "Salle supprimée";
+    return data.salles[index];
 }
 
-function deleteSalleByName(name, dataPath = defaultDataPath) {
+
+function deleteSalle(name, dataPath = defaultDataPath) {
     const data = readData(dataPath);
     data.salles = Array.isArray(data.salles) ? data.salles : [];
     const index = data.salles.findIndex(salle => salle.name === name);
@@ -113,10 +86,7 @@ function deleteSalleByName(name, dataPath = defaultDataPath) {
 
 module.exports = {
     addSalle,
-    createSalle,
     deleteSalle,
-    deleteSalleByName,
     editSalle,
-    editSalleByName,
     getSalles
 };
